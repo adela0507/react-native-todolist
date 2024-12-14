@@ -7,6 +7,9 @@ export const s = StyleSheet.create({
     padding:15,
   },
   header: { flex: 1 },
-  body: { flex: 5, backgroundColor:"red", },
+  body: { flex: 5,  },
   footer: { height: 70, backgroundColor:"blue", },
+  cardItem:{
+    marginBottom:15,
+  },
 });
