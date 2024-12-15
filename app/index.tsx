@@ -3,6 +3,7 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { s } from "./App.style";
 import { Header } from "../components/Header/Header";
 import {CardToDo} from "../components/CardToDo/CardToDo";
+import {TopBottomMenu} from "../components/TopBottomMenu/TopBottomMenu";
 import { useState } from "react";
 
 export default function App() {
@@ -17,12 +18,38 @@ export default function App() {
     { id: 8, title: "Go to the dentist", isCompleted: false },
     { id: 9, title: "Learn React Native", isCompleted: false },
   ]);
+
+const [selectedTabName, setSelectedTabName]=useState("all");
+
+function getFilteredList() {
+    switch (selectedTabName) {
+      case "all":
+        return todoList;
+      case "inProgress":
+        return todoList.filter((todo) => !todo.isCompleted);
+      case "done":
+        return todoList.filter((todo) => todo.isCompleted);
+    }
+  }
+
 function renderTodoList(){
-  return todoList.map((todo)=>
+  return getFilteredList().map((todo)=>
   <View key={todo.id} style={s.cardItem}>
-    <CardToDo todo={todo}/>
+    <CardToDo onPress={updateTodo} todo={todo}/>
   </View> )
 }
+
+function updateTodo(todo){
+  const updatedTodo={
+    ...todo, isCompleted: !todo.isCompleted
+  };
+  const updatedTodoList=[...todoList]
+  const indexUpdatedTodo=updatedTodoList.findIndex(
+    t=>t.id==updatedTodo.id);
+    updatedTodoList[indexUpdatedTodo]=updatedTodo;
+    setToDoList(updatedTodoList);
+}
+
   return (
     <>
       <SafeAreaProvider>
@@ -38,7 +65,9 @@ function renderTodoList(){
         </SafeAreaView>
       </SafeAreaProvider>
       <View style={s.footer}>
-        <Text>Footer</Text>
+        <TopBottomMenu 
+        todoList={todoList}
+        onPress={setSelectedTabName} selectedTabName={selectedTabName} />
       </View>
     </>
   );
