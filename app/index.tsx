@@ -3,17 +3,55 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { s } from "./App.style";
 import { Header } from "../components/Header/Header";
 import { CardToDo } from "../components/CardToDo/CardToDo";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { TopBottomMenu } from "../components/TopBottomMenu/TopBottomMenu";
 import { ButtonAdd } from "../components/ButtonAdd/ButtonAdd";
 import Dialog from "react-native-dialog";
 import uuid from "react-native-uuid";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+let isFirstrENDER=true;
 
 export default function App() {
   const [todoList, setTodoList] = useState([]);
   const [selectedTabName, setSelectedTabName] = useState("all");
   const [isAddDialogDisplayed, setIsAddDialogDisplayed] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  const scrollViewRef=useRef();
+
+  useEffect(()=>{
+    loadTodoList();
+  },[]);
+
+  useEffect(()=>{
+    if(!isFirstrENDER){
+    saveTodoList();
+  }
+    else {
+      isFirstrENDER=false;
+    }
+  },[todoList]);
+
+  async function loadTodoList(){
+    try{
+     const todoListString= await AsyncStorage.getItem("@todoList");
+     const parsedTodoList=JSON.parse(todoListString);
+     setTodoList(parsedTodoList || []);
+
+    }catch(err){
+      alert(err);
+    }
+  }
+
+  async function saveTodoList(){
+    try{
+      await AsyncStorage.setItem("@todoList",JSON.stringify(todoList))
+
+    }catch(err){
+      alert(err);
+    }
+
+  }
 
   function getFilteredList() {
     switch (selectedTabName) {
@@ -69,6 +107,9 @@ export default function App() {
     setTodoList([...todoList, newTodo]);
     setIsAddDialogDisplayed(false);
     setInputValue("");
+    setTimeout(()=>{
+      scrollViewRef.current.scrollToEnd()
+    },300);
   }
 
   function renderAddDialog() {
@@ -81,7 +122,7 @@ export default function App() {
         <Dialog.Description>Choose a name for your todo</Dialog.Description>
         <Dialog.Input
           onChangeText={setInputValue}
-          placeholder="Ex : Go to the dentis"
+          placeholder="Ex : Go to the dentist"
         />
         <Dialog.Button
           label="Cancel"
@@ -105,7 +146,7 @@ export default function App() {
             <Header />
           </View>
           <View style={s.body}>
-            <ScrollView>{renderTodoList()}</ScrollView>
+            <ScrollView ref={scrollViewRef} >{renderTodoList()}</ScrollView>
           </View>
           <ButtonAdd onPress={() => setIsAddDialogDisplayed(true)} />
         </SafeAreaView>
